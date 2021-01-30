@@ -43,6 +43,7 @@
         }
 
         foundclues = [];
+        foundanticlues = [];
         possibleclues = [];
         foundclueshtml = "";
 
@@ -65,6 +66,11 @@
                     possibleghosts();
                 }
 
+            } else if ((flags.mod || flags.broadcaster || flags.vip) && anticlues.includes(command)) {
+                console.log(command + " recognized as anticlue");
+                anticlue = command.substring(2)
+                console.log("anticlue:" + anticlue)
+                anticluefound(anticlue)
             }
         }
 
@@ -74,35 +80,49 @@
             possibleghosts();
         }
 
+        function anticluefound(clue) {
+            foundclueshtml += "<button type=\"button\" class=\"antifound\">" + clue + "<\/button>";
+            foundanticlues.push(clue)
+            possibleghosts();
+        }
+
+        function ghostpossible(ghostclues, affirmative, negative) {
+            for (clue of affirmative) {
+                if (!ghostclues.includes(clue)) {
+                    return false;
+                }
+            }
+
+            for (clue of negative) {
+                if (ghostclues.includes(clue)) {
+                    return false;
+                }
+            }
+            return true
+        }
+
         function possibleghosts() {
             possibleclues = [];
             remainingghosts = [];
             for (ghost in ghosts) {
-                remainingghosts.push(ghost);
-                for (clue in foundclues) {
-                    if (!(ghosts[ghost].includes(foundclues[clue]))) {
-                        remainingghosts.pop();
-                        break;
-                    };
-
-                };
-
-            };
-            remainingghostshtml = "";
-            possibleclueshtml = "";
-            for (ghost in remainingghosts) {
-                remainingghostshtml += "<button type=\"button\">" + remainingghosts[ghost] + "<\/button>";
-                for (clue in ghosts[remainingghosts[ghost]]) {
-                    newclue = ghosts[remainingghosts[ghost]][clue]
-                    if (!(possibleclues.includes(newclue)) && !(foundclues.includes(newclue))) {
-                        possibleclues.push(newclue);
-                        possibleclueshtml += "<button type=\"button\">" + newclue + "<\/button>";
+                if (ghostpossible(ghosts[ghost], foundclues, foundanticlues) == true) {
+                    remainingghosts.push(ghost);
+                }
+                remainingghostshtml = "";
+                possibleclueshtml = "";
+                for (ghost in remainingghosts) {
+                    remainingghostshtml += "<button type=\"button\">" + remainingghosts[ghost] + "<\/button>";
+                    for (clue in ghosts[remainingghosts[ghost]]) {
+                        newclue = ghosts[remainingghosts[ghost]][clue]
+                        if (!(possibleclues.includes(newclue)) && !(foundclues.includes(newclue))) {
+                            possibleclues.push(newclue);
+                            possibleclueshtml += "<button type=\"button\">" + newclue + "<\/button>";
+                        };
                     };
                 };
+                document.getElementById("iframegoeshere").innerHTML = "<p style=\"color:white\"><span class=\"rowheader\">Possibilities: </span>" + remainingghostshtml + "<br><span class=\"rowheader\">Found:</span>" + foundclueshtml + "<br><span class=\"rowheader\"> Looking For: </span>" + possibleclueshtml + "<\/p>";
             };
-            document.getElementById("iframegoeshere").innerHTML = "<p style=\"color:white\"><span class=\"rowheader\">Possibilities: </span>" + remainingghostshtml + "<br><span class=\"rowheader\">Found:</span>" + foundclueshtml + "<br><span class=\"rowheader\"> Looking For: </span>" + possibleclueshtml + "<\/p>";
-        };
 
-        ComfyJS.Init(username);
+            ComfyJS.Init(username);
     </script>
 </body>
